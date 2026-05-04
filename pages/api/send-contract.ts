@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { IncomingForm, Fields, Files } from 'formidable'
 import fs from 'fs'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 import { sendSignatureRequest } from '@/lib/mailer'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -9,6 +9,12 @@ export const config = { api: { bodyParser: false } }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).end()
+
+  // Criado aqui para usar variáveis de ambiente avaliadas em runtime (não no build)
+  const supabase = createClient(
+    process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  )
 
   const form = new IncomingForm({ keepExtensions: true })
 
