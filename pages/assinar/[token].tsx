@@ -1,7 +1,7 @@
 import { GetServerSideProps } from 'next'
 import { useState } from 'react'
 import Head from 'next/head'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 interface Props {
   signatory: {
@@ -170,6 +170,12 @@ export default function AssinarPage({ signatory, contract }: Props) {
 
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   const token = params?.token as string
+
+  // Criado aqui para usar variáveis de ambiente avaliadas em runtime (não no build)
+  const supabase = createClient(
+    process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  )
 
   const { data: signatory, error } = await supabase
     .from('signatories')
