@@ -1,14 +1,17 @@
 import nodemailer from 'nodemailer'
 
-export const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT),
-  secure: Number(process.env.SMTP_PORT) === 465, // true para 465, false para outras portas (como 587)
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-})
+// Criado como função para garantir leitura das env vars em runtime (não no boot do módulo)
+function createTransporter() {
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.zoho.com',
+    port: Number(process.env.SMTP_PORT) || 587,
+    secure: (Number(process.env.SMTP_PORT) || 587) === 465,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  })
+}
 
 export async function sendSignatureRequest({
   toName,
@@ -28,6 +31,7 @@ export async function sendSignatureRequest({
   )
   const whatsappLink = `https://wa.me/?text=${whatsappText}`
 
+  const transporter = createTransporter()
   await transporter.sendMail({
     from: `"${senderName}" <${process.env.SMTP_FROM}>`,
     to: toEmail,
@@ -77,6 +81,7 @@ export async function sendSignedConfirmation({
   signedAt: string
   ip: string
 }) {
+  const transporter = createTransporter()
   await transporter.sendMail({
     from: `"AssinaFácil" <${process.env.SMTP_FROM}>`,
     to: toEmail,
