@@ -81,7 +81,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return res.status(500).json({ error: 'Erro ao salvar signatário: ' + sigError.message })
         }
 
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+        const host = req.headers.host;
+        const protocol = host?.includes('localhost') ? 'http' : 'https';
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || `${protocol}://${host}`;
         const signLink = `${appUrl}/assinar/${token}`
 
         const { whatsappLink } = await sendSignatureRequest({
