@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink: #1a1410;
+  --paper: #faf7f2;
+  --accent: #b5651d;
+  --muted: #8c7b6b;
+  --border: #ddd5c8;
+  --success: #2d6a4f;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Lora', Georgia, serif;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@400;500&display=swap');
