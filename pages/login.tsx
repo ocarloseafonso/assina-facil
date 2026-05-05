@@ -47,7 +47,6 @@ export default function Login() {
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder="admin@ceafonso.com.br"
               required
               style={inputStyle}
             />
@@ -59,7 +58,6 @@ export default function Login() {
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••"
               required
               style={inputStyle}
             />
