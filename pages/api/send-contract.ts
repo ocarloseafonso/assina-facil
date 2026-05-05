@@ -25,8 +25,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const get = (f: string) => Array.isArray(fields[f]) ? fields[f]![0] : (fields[f] as unknown) as string
       const contractType = get('contractType') as 'pdf' | 'template'
       const contractTitle = get('contractTitle')
-      const senderName = get('senderName')
-      const senderEmail = get('senderEmail')
+      const senderName = 'C.E. Afonso Soluções Digitais'
+      const senderEmail = 'juridico@ceafonso.com.br'
       const signatories: { name: string; email: string }[] = JSON.parse(get('signatories') || '[]')
       const templateContent = get('templateContent') || null
 
@@ -66,7 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (contractError) return res.status(500).json({ error: 'Erro ao salvar contrato: ' + contractError.message })
 
       // Criar signatários e enviar e-mails
-      const whatsappLinks: { name: string; link: string }[] = []
+      const whatsappLinks: { name: string; link: string; text: string }[] = []
 
       for (const signatory of signatories) {
         const token = uuidv4()
@@ -94,7 +94,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           senderName,
         })
 
-        whatsappLinks.push({ name: signatory.name, link: whatsappLink })
+        const whatsappText = `Olá ${signatory.name}, você recebeu o contrato "${contractTitle}" para assinar. Acesse o link: ${signLink}`
+
+        whatsappLinks.push({ name: signatory.name, link: whatsappLink, text: whatsappText })
       }
 
       return res.status(200).json({ success: true, contractId: contract.id, whatsappLinks })

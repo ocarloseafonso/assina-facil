@@ -1,5 +1,6 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
+import { useRouter } from 'next/router'
 import Head from 'next/head'
 
 interface Signatory {
@@ -10,15 +11,24 @@ interface Signatory {
 type ContractType = 'pdf' | 'template'
 
 export default function Home() {
+  const router = useRouter()
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+
   const [contractType, setContractType] = useState<ContractType>('pdf')
   const [pdfFile, setPdfFile] = useState<File | null>(null)
   const [templateContent, setTemplateContent] = useState('')
   const [contractTitle, setContractTitle] = useState('')
-  const [senderName, setSenderName] = useState('')
-  const [senderEmail, setSenderEmail] = useState('')
   const [signatories, setSignatories] = useState<Signatory[]>([{ name: '', email: '' }])
   const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<{ success: boolean; whatsappLinks?: { name: string; link: string }[] } | null>(null)
+  const [result, setResult] = useState<{ success: boolean; whatsappLinks?: { name: string; link: string, text: string }[] } | null>(null)
+
+  useEffect(() => {
+    if (localStorage.getItem('assinafacil_auth') === 'true') {
+      setIsAuthenticated(true)
+    } else {
+      router.push('/login')
+    }
+  }, [router])
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles[0]) setPdfFile(acceptedFiles[0])
@@ -47,8 +57,6 @@ export default function Home() {
       const formData = new FormData()
       formData.append('contractType', contractType)
       formData.append('contractTitle', contractTitle)
-      formData.append('senderName', senderName)
-      formData.append('senderEmail', senderEmail)
       formData.append('signatories', JSON.stringify(signatories))
       if (contractType === 'pdf' && pdfFile) formData.append('pdf', pdfFile)
       if (contractType === 'template') formData.append('templateContent', templateContent)
@@ -74,18 +82,29 @@ export default function Home() {
           <p style={{ color: 'var(--muted)', marginBottom: 32 }}>Os signatários receberam o e-mail com o link para assinar.</p>
 
           <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 8, padding: 24, marginBottom: 32, textAlign: 'left' }}>
-            <p style={{ fontSize: 13, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 16 }}>Links para WhatsApp</p>
+            <p style={{ fontSize: 13, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 16 }}>Copiar para WhatsApp</p>
             {result.whatsappLinks?.map((w, i) => (
-              <div key={i} style={{ marginBottom: 12 }}>
-                <p style={{ fontSize: 14, fontWeight: 600, margin: '0 0 4px' }}>{w.name}</p>
-                <a
-                  href={w.link}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ display: 'inline-block', background: '#25D366', color: '#fff', padding: '10px 20px', borderRadius: 4, fontSize: 14, textDecoration: 'none' }}
-                >
-                  📲 Enviar pelo WhatsApp
-                </a>
+              <div key={i} style={{ marginBottom: 20 }}>
+                <p style={{ fontSize: 14, fontWeight: 600, margin: '0 0 8px' }}>{w.name}</p>
+                <div style={{ background: '#fafaf9', border: '1px solid var(--border)', borderRadius: 6, padding: '12px 16px', position: 'relative' }}>
+                  <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: 'var(--ink)', paddingRight: 40, whiteSpace: 'pre-wrap' }}>
+                    {w.text}
+                  </p>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(w.text)
+                      alert('Texto copiado!')
+                    }}
+                    title="Copiar texto"
+                    style={{
+                      position: 'absolute', right: 12, top: 12, background: 'var(--ink)', color: '#fff',
+                      border: 'none', borderRadius: 4, padding: '6px 12px', fontSize: 12, cursor: 'pointer',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    Copiar
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -100,6 +119,8 @@ export default function Home() {
       </div>
     )
   }
+
+  if (!isAuthenticated) return null;
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--paper)', padding: '40px 20px' }}>
@@ -145,20 +166,9 @@ export default function Home() {
           <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 8, padding: 24, marginBottom: 20 }}>
             <label style={{ fontSize: 13, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--muted)', display: 'block', marginBottom: 16 }}>Dados do contrato</label>
 
-            <div style={{ marginBottom: 16 }}>
+            <div>
               <label style={labelStyle}>Título do contrato *</label>
               <input style={inputStyle} placeholder="Ex: Contrato de Prestação de Serviços" value={contractTitle} onChange={e => setContractTitle(e.target.value)} required />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div>
-                <label style={labelStyle}>Seu nome *</label>
-                <input style={inputStyle} placeholder="Nome do remetente" value={senderName} onChange={e => setSenderName(e.target.value)} required />
-              </div>
-              <div>
-                <label style={labelStyle}>Seu e-mail *</label>
-                <input style={inputStyle} type="email" placeholder="voce@empresa.com" value={senderEmail} onChange={e => setSenderEmail(e.target.value)} required />
-              </div>
             </div>
           </div>
 
