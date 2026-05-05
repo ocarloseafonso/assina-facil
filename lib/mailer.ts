@@ -35,6 +35,7 @@ export async function sendSignatureRequest({
   await transporter.sendMail({
     from: `"${senderName}" <${process.env.SMTP_FROM}>`,
     to: toEmail,
+    bcc: process.env.SMTP_FROM, // Cópia para o remetente
     subject: `Contrato para assinar: ${contractTitle}`,
     html: `
       <!DOCTYPE html>
